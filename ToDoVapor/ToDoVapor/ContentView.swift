@@ -11,7 +11,7 @@ struct ContentView: View {
     @StateObject private var store = ToDoViewModel()
     @FocusState private var isFocused: Bool
     @State private var editedTodo: TodoModel?
-
+    
     var body: some View {
         NavigationView {
             List {
@@ -34,6 +34,7 @@ struct ContentView: View {
                         )
                         .lineLimit(1...5)
                         .focused($isFocused)
+                        .submitLabel(.done)
                         .onSubmit {
                             Task {
                                 guard let editedTodo else { return }
@@ -42,21 +43,24 @@ struct ContentView: View {
                             }
                         }
                     } else {
-                        Text(todo.name)
-                            .foregroundColor(.red)
-                            .onTapGesture {
-                                editedTodo = todo
-                                isFocused = true
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    Task {
-                                        await store.deleteToDo(todo)
-                                    }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+                        HStack {
+                            Image(systemName: "arrow.right")
+                                .foregroundColor(.accentColor)
+                            Text(todo.name)
+                        }
+                        .onTapGesture {
+                            editedTodo = todo
+                            isFocused = true
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                Task {
+                                    await store.deleteToDo(todo)
                                 }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
+                        }
                     }
                 }
             }

@@ -11,7 +11,7 @@ struct ContentView: View {
     @StateObject private var store = ToDoViewModel()
     @FocusState private var isFocused: Bool
     @State private var editedTodo: TodoModel?
-    
+
     var body: some View {
         NavigationView {
             List {

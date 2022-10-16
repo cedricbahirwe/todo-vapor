@@ -8,14 +8,15 @@
 import Foundation
 
 final class ToDoViewModel: ObservableObject {
-    @Published private(set) var todos: [TodoModel] = []
+    @Published var todos: [TodoModel] = []
+    @Published private(set) var isLoading: Bool = false
 
-    public func createToDo() async {
+    @MainActor
+    public func createToDo(_ todo: TodoModel) async {
         var request = makeURLRequest("POST")
-
+        isLoading = true
         do {
-            let model = TodoModel(name: UUID().description)
-            request.httpBody = try JSONEncoder().encode(model)
+            request.httpBody = try JSONEncoder().encode(todo)
         } catch {
             print("The error \(error.localizedDescription)")
         }
@@ -32,12 +33,13 @@ final class ToDoViewModel: ObservableObject {
         } catch {
             print(error.localizedDescription)
         }
+        isLoading = false
     }
 
-
+    @MainActor
     public func getToDos() async {
         let url = makeURL("todo-lists")
-
+        isLoading = true
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
 
@@ -47,14 +49,16 @@ final class ToDoViewModel: ObservableObject {
         } catch {
             print(error.localizedDescription)
         }
+        isLoading = false
     }
 
+    @MainActor
     public func updateToDo(_ todo: TodoModel) async {
         var request = makeURLRequest("PUT", path: todo.id.uuidString)
 
+        isLoading = true
         do {
-            let model = TodoModel(id: todo.id, name: UUID().description)
-            request.httpBody = try JSONEncoder().encode(model)
+            request.httpBody = try JSONEncoder().encode(todo)
         } catch {
             print("The error \(error.localizedDescription)")
         }
@@ -71,12 +75,14 @@ final class ToDoViewModel: ObservableObject {
         } catch {
             print(error.localizedDescription)
         }
+        isLoading = false
     }
 
 
+    @MainActor
     func deleteToDo(_ todo: TodoModel) async {
         let request = makeURLRequest("DELETE", path: todo.id.uuidString)
-
+        isLoading = true
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -89,6 +95,11 @@ final class ToDoViewModel: ObservableObject {
         } catch {
             print(error.localizedDescription)
         }
+        isLoading = false
+    }
+
+    var makeURl: (String) -> URL = {
+        URL(string: "http://127.0.0.1:8080/\($0)")!
     }
 
     private func makeURL(_ endpoint: String) -> URL {

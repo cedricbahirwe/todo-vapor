@@ -29,7 +29,6 @@ func routes(_ app: Application) throws {
     }
 
     app.delete("todo-lists", ":todoID") { req -> EventLoopFuture<HTTPStatus> in
-        print(req.parameters)
         return TodoList.find(req.parameters.get("todoID"), on: req.db)
             .unwrap(or: Abort(.notFound))
             .flatMap { todo in
